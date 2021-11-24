@@ -17,12 +17,9 @@ return function(Slim\App $app) {
 
     $app->post('/rajzfilmek', function(Request $request, Response $response) {
         $input = json_decode($request->getBody(), true);
-        // Bemenet validáció!
-        $rajzfilm = new Rajzfilm();
-        $rajzfilm->setAttributes($input);
-        $rajzfilm->uj();
+        $rajzfilm = Rajzfilm::create($input);
 
-        $kimenet = json_encode($rajzfilm);
+        $kimenet = $rajzfilm->toJson();
         
         $response->getBody()->write($kimenet);
         return $response
@@ -39,7 +36,7 @@ return function(Slim\App $app) {
                     ->withHeader('Content-Type', 'application/json')
                     ->withStatus(400);
             }
-            $rajzfilm = Rajzfilm::getById($args['id']);
+            $rajzfilm = Rajzfilm::find($args['id']);
             if ($rajzfilm === null) {
                 $ki = json_encode(['error' => 'Nincs ilyen ID-jű rajzfilm']);
                 $response->getBody()->write($ki);
@@ -47,8 +44,54 @@ return function(Slim\App $app) {
                     ->withHeader('Content-Type', 'application/json')
                     ->withStatus(404);
             }
-            $rajzfilm->torles();
+            $rajzfilm->delete();
             return $response
                 ->withStatus(204);
+        });
+
+        $app->put('/rajzfilmek/{id}', function (Request $request, Response $response, array $args) {
+            if (!is_numeric($args['id']) || $args['id'] <= 0) {
+                $ki = json_encode(['error' => 'Az ID pozitív egész szám kell legyen!']);
+                $response->getBody()->write($ki);
+                return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(400);
+            }
+            $rajzfilm = Rajzfilm::find($args['id']);
+            if ($rajzfilm === null) {
+                $ki = json_encode(['error' => 'Nincs ilyen ID-jű rajzfilm']);
+                $response->getBody()->write($ki);
+                return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(404);
+            }
+            $input = json_decode($request->getBody(), true);
+            $rajzfilm->fill($input);
+            $rajzfilm->save();
+            $response->getBody()->write($rajzfilm->toJson());
+            return $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(200);
+        });
+
+        $app->get('/rajzfilmek/{id}', function (Request $request, Response $response, array $args) {
+            if (!is_numeric($args['id']) || $args['id'] <= 0) {
+                $ki = json_encode(['error' => 'Az ID pozitív egész szám kell legyen!']);
+                $response->getBody()->write($ki);
+                return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(400);
+            }
+            $rajzfilm = Rajzfilm::find($args['id']);
+            if ($rajzfilm === null) {
+                $ki = json_encode(['error' => 'Nincs ilyen ID-jű rajzfilm']);
+                $response->getBody()->write($ki);
+                return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(404);
+            }
+            return $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(200);
         });
 };
