@@ -1,4 +1,4 @@
-CREATE TABLE rajzfilmek (
+CREATE TABLE rajzfilm (
     id INT AUTO_INCREMENT PRIMARY KEY,
     cim VARCHAR(1000) NOT NULL,
     hossz INT NOT NULL,
